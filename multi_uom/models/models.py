@@ -23,13 +23,13 @@ class ProductTemplate(models.Model):
         return res
 
     def write(self, values):
-        if not self.units_ids:
-            if 'units_ids' not in values:
-                raise UserError(_('Please add multi uom in units tab.'))
+        if 'install_module' not in self._context:
+            if not self.units_ids:
+                if 'units_ids' not in values:
+                    raise UserError(_('Please add multi uom in units tab.'))
         res = super(ProductTemplate, self).write(values)
 
         return res
-
 
     def _get_combination_info(self, combination=False, product_id=False, add_qty=1, pricelist=False, parent_combination=False, only_template=False):
         """Override for website, where we want to:
@@ -257,19 +257,16 @@ class Pricelist(models.Model):
     #              "currency":product.currency_id.name,
     #            }
 
-
 class OrderLineUnits(models.Model):
     _name = 'multi.units'
 
     def get_category(self):
         return self.env.context.get('uom_cat_id')
 
-
     price = fields.Float(required=True)
     uom_cat_id=fields.Many2one('uom.category', default=get_category)
     product_id = fields.Many2one('product.template',  ondelete='cascade')
     unit_id = fields.Many2one('uom.uom', string="Unit", required=True)
-
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
