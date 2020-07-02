@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="assets_frontend_inherit" inherit_id="website.assets_frontend" name="Scroll Button" >
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" href="/terms_condition/static/src/css/overflow.css"/>
+            <script type="text/javascript" src="/terms_condition/static/src/js/terms_condition.js"></script>
+        </xpath>
+    </template>
+</odoo>

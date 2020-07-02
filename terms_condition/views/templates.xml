@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>    
+    <template id="payment_inherited" inherit_id="website_sale.payment">
+        <xpath expr="//div[@id='payment_method']" position="before">
+            <div class="col-xs-12">
+                <div>
+                     <label>
+                        <input type="checkbox" checked="checked" id="checkbox_cgv" class="checkbox_cgv" />
+                        I have read and I agree to the Terms &amp; Conditions
+                    </label>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>
