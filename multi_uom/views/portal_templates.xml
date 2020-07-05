@@ -50,7 +50,7 @@
                     <th class="td-img">Product</th>
                     <th></th>
                     <th class="text-center td-qty">Quantity</th>
-                    <th class="text-center td-qty">Unit</th>
+                    <th class="text-center td-unit">Unit</th>
                     <th class="text-center td-price">Price</th>
                     <th class="text-center td-action"></th>
                 </tr>
@@ -87,7 +87,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="text-center td-qty">
+                        <td class="text-center td-unit">
                             <div class="css_quantity input-group mx-auto">
                                 <span t-field="line.product_uom" style="white-space: nowrap;" />
                             </div>
@@ -120,6 +120,7 @@
         <xpath expr="//div[@class='product_price']" position="replace">
             <div class="product_price" itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer">
                 <span t-esc="combination_info['unit'].name"/>
+                <input t-if="combination_info['multi_uom']" type="hidden" class="uom_ids" id="uom_ids" name="uom" t-att-value="combination_info['multi_uom'].id" />
                 <del t-attf-class="text-danger mr-2 {{'' if combination_info['has_discounted_price'] else 'd-none'}}" style="white-space: nowrap;" t-esc="combination_info['list_price']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}" />
                 <span t-if="combination_info['price']" t-esc="combination_info['price']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
                 <span itemprop="price" style="display:none;" t-esc="combination_info['price']" />

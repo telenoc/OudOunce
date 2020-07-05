@@ -11,6 +11,7 @@
         'views/views.xml',
         'views/portal_templates.xml',
         'security/ir.model.access.csv',
+        'data/access.xml',
     ],
 
 }

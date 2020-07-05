@@ -3,6 +3,9 @@ from itertools import chain
 
 from odoo import models, fields, api ,_
 from datetime import datetime
+from odoo.exceptions import UserError, ValidationError
+from odoo.tools import float_round
+
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
@@ -10,6 +13,23 @@ class ProductTemplate(models.Model):
     is_multi_units = fields.Boolean('Is Multi Units?')
     uom_cat_id=fields.Many2one(related='uom_id.category_id')
     units_ids = fields.One2many('multi.units', 'product_id', string='Units IDs')
+
+    @api.model
+    def create(self, values):
+        if 'units_ids' not in values:
+            raise UserError(_('Please add multi uom in units tab.'))
+        res = super(ProductTemplate, self).create(values)
+
+        return res
+
+    def write(self, values):
+        if 'install_module' not in self._context:
+            if not self.units_ids:
+                if 'units_ids' not in values:
+                    raise UserError(_('Please add multi uom in units tab.'))
+        res = super(ProductTemplate, self).write(values)
+
+        return res
 
     def _get_combination_info(self, combination=False, product_id=False, add_qty=1, pricelist=False, parent_combination=False, only_template=False):
         """Override for website, where we want to:
@@ -47,10 +67,12 @@ class ProductTemplate(models.Model):
                 price, rul_id= pricelist._compute_price_rule(pro, muom=product.units_ids[0] or False)[product.id]
                 price = taxes.compute_all(price, pricelist.currency_id, quantity_1, product, partner)[tax_display]
                 unit = product.units_ids[0].unit_id
+                multi_uom = product.units_ids[0]
             else:
                 price, rul_id= pricelist._compute_price_rule(pro, muom=False)[product.id]
                 price = taxes.compute_all(price, pricelist.currency_id, quantity_1, product, partner)[tax_display]
                 unit = product.uom_id
+                multi_uom = None
 
             if pricelist.discount_policy == 'without_discount':
                 list_price = taxes.compute_all(combination_info['list_price'], pricelist.currency_id, quantity_1, product, partner)[tax_display]
@@ -62,6 +84,7 @@ class ProductTemplate(models.Model):
                 price=price,
                 list_price=list_price,
                 unit=unit,
+                multi_uom=multi_uom,
                 has_discounted_price=has_discounted_price,
             )
         
@@ -218,20 +241,21 @@ class Pricelist(models.Model):
 
             return results
 
-    @api.model
-    def get_prices(self, args):
-
-        partner = self.env.user.partner_id
-        product = self.env['product.product'].browse(int(args['product_id']))
-        pro = [(product, 1.0, partner)]
+    # @api.model
+    # def get_prices(self, args):
+    #     print("*********************************************")
+    #     partner = self.env.user.partner_id
+    #     product = self.env['product.product'].browse(int(args['product_id']))
+    #     pro = [(product, 1.0, partner)]
         
-        muom = self.env['multi.units'].browse(int(args['uom']))
-        pricelist = self.env['product.pricelist'].browse(int(args['pricelist_ids']))
-        price, rul_id = pricelist._compute_price_rule(pro, muom=muom)[product.id]
+    #     muom = self.env['multi.units'].browse(int(args['uom']))
+    #     pricelist = self.env['product.pricelist'].browse(int(args['pricelist_ids']))
+    #     price, rul_id = pricelist._compute_price_rule(pro, muom=muom)[product.id]
 
-        # print("<<<  ", float_round(price, precision_digits=2))
-        return price
-
+    #     return {
+    #              "price":float_round(price, precision_digits=2),
+    #              "currency":product.currency_id.name,
+    #            }
 
 class OrderLineUnits(models.Model):
     _name = 'multi.units'
@@ -239,12 +263,10 @@ class OrderLineUnits(models.Model):
     def get_category(self):
         return self.env.context.get('uom_cat_id')
 
-
     price = fields.Float(required=True)
     uom_cat_id=fields.Many2one('uom.category', default=get_category)
     product_id = fields.Many2one('product.template',  ondelete='cascade')
     unit_id = fields.Many2one('uom.uom', string="Unit", required=True)
-
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'

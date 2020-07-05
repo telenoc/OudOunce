@@ -3,8 +3,9 @@ import logging
 import werkzeug.utils
 
 from odoo import http
-from odoo.http import request
+from odoo.http import content_disposition, Controller, request, route
 import json
+from odoo.tools import float_round
 
 
 class WebsiteUOM(http.Controller):
@@ -43,3 +44,22 @@ class WebsiteUOM(http.Controller):
             return request.redirect("/shop/checkout?express=1")
 
         return request.redirect("/shop/cart")
+
+
+    @route(['/get/price'], type='json', auth="public", methods=['GET', 'POST'], csrf=False)
+    def get_price(self, **args):
+        
+        partner = request.env.user.partner_id
+        product = request.env['product.product'].browse(int(args['product_id']))
+        pro = [(product, 1.0, partner)]
+        
+        muom = request.env['multi.units'].browse(int(args['uom']))
+        pricelist = request.env['product.pricelist'].browse(int(args['pricelist_ids']))
+        price, rul_id = pricelist._compute_price_rule(pro, muom=muom)[product.id]
+        
+        values = {}
+        values.update({
+                 "price":float_round(price, precision_digits=2),
+                 "currency":product.currency_id.name,
+               })
+        return values
