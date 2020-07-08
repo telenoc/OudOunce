@@ -12,24 +12,26 @@ class ProductTemplate(models.Model):
 
     is_multi_units = fields.Boolean('Is Multi Units?')
     uom_cat_id=fields.Many2one(related='uom_id.category_id')
-    units_ids = fields.One2many('multi.units', 'product_id', string='Units IDs')
+    units_ids = fields.One2many('multi.units', 'product_id', string='Units IDs', required=True)
 
-    @api.model
-    def create(self, values):
-        if 'units_ids' not in values:
-            raise UserError(_('Please add multi uom in units tab.'))
-        res = super(ProductTemplate, self).create(values)
+    # @api.model
+    # def create(self, values):
+    #     if 'install_module' not in self._context:
+    #         if 'units_ids' not in values:
+    #             raise UserError(_('Please add multi uom in units tab.'))
+    #     res = super(ProductTemplate, self).create(values)
 
-        return res
+    #     return res
 
-    def write(self, values):
-        if 'install_module' not in self._context:
-            if not self.units_ids:
-                if 'units_ids' not in values:
-                    raise UserError(_('Please add multi uom in units tab.'))
-        res = super(ProductTemplate, self).write(values)
+    # def write(self, values):
+    #     if 'install_module' not in self._context:
+    #         if self.sale_ok:
+    #             if not self.units_ids:
+    #                 if 'units_ids' not in values:
+    #                     raise UserError(_('Please add multi uom in units tab.'))
+    #     res = super(ProductTemplate, self).write(values)
 
-        return res
+    #     return res
 
     def _get_combination_info(self, combination=False, product_id=False, add_qty=1, pricelist=False, parent_combination=False, only_template=False):
         """Override for website, where we want to:
@@ -262,9 +264,13 @@ class OrderLineUnits(models.Model):
 
     def get_category(self):
         return self.env.context.get('uom_cat_id')
+    
+    def get_is_multi(self):
+        return self.env.context.get('is_multi_units')
 
     price = fields.Float(required=True)
     uom_cat_id=fields.Many2one('uom.category', default=get_category)
+    is_multi_units = fields.Boolean(default=get_is_multi)
     product_id = fields.Many2one('product.template',  ondelete='cascade')
     unit_id = fields.Many2one('uom.uom', string="Unit", required=True)
 

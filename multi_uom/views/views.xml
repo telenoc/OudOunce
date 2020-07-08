@@ -12,10 +12,11 @@
                 <xpath expr="//page[@name='sales']" position="after">
                     <page name="units" string="Units" attrs="{'invisible':[('is_multi_units','==', False)]}">
                         <field name="uom_cat_id" invisible="1"/>
-                        <field name="units_ids" context="{'uom_cat_id': uom_cat_id}">
+                        <field name="units_ids" context="{'uom_cat_id': uom_cat_id, 'is_multi_units': is_multi_units}">
                             <tree string="Units" editable="bottom">
                                 <field name="unit_id" domain="[('category_id','=',uom_cat_id)]" options="{'no_create': True, 'no_open': True}"/>
                                 <field name="uom_cat_id" invisible="1"/>
+                                <field name="is_multi_units" invisible="1"/>
                                 <field name="price"/>
                             </tree>
                         </field>
