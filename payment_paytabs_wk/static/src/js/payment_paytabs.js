@@ -38,6 +38,7 @@ odoo.define('payment_paytab_wk.payment_paytab_wk', function (require) {
 
           })
           .then(function (result) {
+            console.log(result)
               $.unblockUI()
               if (result.result=='The Pay Page is created.' && result.response_code=='4012' && result.payment_url)  {
                 window.location = result.payment_url;

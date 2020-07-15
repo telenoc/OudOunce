@@ -18,7 +18,6 @@ class WebsiteSale(WebsiteSale):
 
 	@http.route([_paytabs_feedbackUrl], type='json', auth='public', website=True)
 	def paytabs_payment(self, **post):
-		print("PPPPPPPPPPPPPPP")
 		merchant_detail = request.env["payment.acquirer"].sudo().browse(int(post.get('acquirer',0)))
 		partner = request.env.user.partner_id
 		products,qty,price_unit,sale_order_detail,billing_address,address_shipping = merchant_detail.create_paytabs_params(partner,post)
@@ -66,7 +65,6 @@ class WebsiteSale(WebsiteSale):
 					 'ip_customer': request.httprequest.environ['REMOTE_ADDR'],
 					 'cms_with_version': "ODOO "+ server_serie
 					 }
-		print(":::::::::::::::   ", merchant_detail.paytabs_url().get('pay_page_url'))
 		result = requests.post(url= merchant_detail.paytabs_url().get('pay_page_url'), data=paytabs_tx_values)
 		request_params = literal_eval(result.text)
 		_logger.info("-----request_params-%r-",request_params)
@@ -84,7 +82,7 @@ class WebsiteSale(WebsiteSale):
 
 	@http.route(['/paytabs/feedback'], type='http', auth='public', website=True ,csrf=False)
 	def paytabs_feedback(self, **post):
-		merchant_detail = request.env["payment.acquirer"].sudo().search([("provider","=","paytabs")])
+		merchant_detail = request.env["payment.acquirer"].sudo().search([("provider","=","paytabs"),("state","!=","disabled")], limit=1)
 		try:
 			params = {
 				'merchant_email': merchant_detail.detail_payment_acquire().get('paytabs_merchant_email'),

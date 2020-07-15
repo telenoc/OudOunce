@@ -9,6 +9,8 @@ from odoo import api, models, fields, _
 from odoo.exceptions import Warning
 
 SMSAWSDLURL = "http://track.smsaexpress.com/SECOM/SMSAwebServiceIntl.asmx?wsdl"
+#SMSAWSDLURL = "http://track.smsaexpress.com/secom/SMSAWebserviceIntl"
+
 
 
 class ProviderSMSAExpress(models.Model):
@@ -44,36 +46,40 @@ class ProviderSMSAExpress(models.Model):
             partner = picking.partner_id
             shipment_data = {'passKey': self.smsa_passkey,
                              'refNo': "{}_{}".format(picking.name, str(time.time()).split(".")[0]),
-                             'sentDate': picking.scheduled_date,
+                             'sentDate': str(picking.scheduled_date),
                              'idNo': '',
-                             'cName': partner.name or '',
-                             'cntry': partner.country_id and partner.country_id.name or '',
-                             'cCity': partner.city or '',
-                             'cZip': partner.zip or '',
+                             'cName': str(partner.name) or '',
+                             'cntry': str(partner.country_id) and str(partner.country_id.name) or '',
+                             'cCity': str(partner.city) or '',
+                             'cZip': str(partner.zip) or '',
                              'cPOBox': '',
-                             'cMobile': partner.phone or '',
+                             'cMobile': str(partner.phone) or '',
                              'cTel1': '',
                              'cTel2': '',
-                             'cAddr1': partner.street or '',
-                             'cAddr2': partner.street2 or '',
-                             'shipType': self.smsa_shipment_type,
+                             'cAddr1': str(partner.street) or '',
+                             'cAddr2': str(partner.street2) or '',
+                             'shipType': str(self.smsa_shipment_type),
                              'PCs': int(sum(picking.move_line_ids.mapped('qty_done'))),
-                             'cEmail': partner.email or '',
-                             'carrValue': 0,
-                             'carrCurr': picking.sale_id.pricelist_id.currency_id.name,
-                             'codAmt': cod_amount,
-                             'weight': picking.shipping_weight,
-                             'custVal': 0,
-                             'custCurr': picking.sale_id.pricelist_id.currency_id.name,
-                             'insrAmt': 0,
-                             'insrCurr': picking.sale_id.pricelist_id.currency_id.name,
-                             'itemDesc': ", ".join(picking.move_lines.mapped('product_id.display_name')),
-                             'vatValue': 0,
+                             'cEmail': str(partner.email) or '',
+                             'carrValue': '0',
+                             'carrCurr': str(picking.sale_id.pricelist_id.currency_id.name),
+                             'codAmt': str(cod_amount),
+                             'weight': str(picking.shipping_weight),
+                             'custVal': '0',
+                             'custCurr': str(picking.sale_id.pricelist_id.currency_id.name),
+                             'insrAmt': '0',
+                             'insrCurr': str(picking.sale_id.pricelist_id.currency_id.name),
+                             'itemDesc': ", ".join(str(picking.move_lines.mapped('product_id.display_name'))),
+                             'vatValue': '0',
                              'harmCode': ''}
             try:
-                client = Client(SMSAWSDLURL)
+                client = Client("http://track.smsaexpress.com/SECOM/SMSAwebServiceIntl.asmx?WSDL")
+                print(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ", client)
                 res = client.service.addShipment(**shipment_data)
+                
+                print(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ", shipment_data)
                 if res.__contains__('Failed'):
+                    print("............................................")
                     raise Warning(_(res))
                 carrier_tracking_ref = res
                 picking.write({'carrier_tracking_ref': carrier_tracking_ref})
@@ -87,6 +93,7 @@ class ProviderSMSAExpress(models.Model):
                 }
                 shipres = shipres + [shipping_data]
             except Exception as e:
+                print("............................................", e)
                 raise Warning(_(e))
         return shipres
 

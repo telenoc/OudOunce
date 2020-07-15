@@ -69,7 +69,6 @@ class AcquirerPayTabs(models.Model):
         order_line = []
         billing_address = ""
         address_shipping = ""
-        print("CCCCCCCCCCCCCCCCCC")
         if  "S0" in  post.get("reference")  :
             sale_order_detail = self.env['sale.order'].sudo().search([('name','=',post.get("reference").split('-')[0])])
             order_line = [sale_order_detail.order_line,True]
@@ -108,9 +107,11 @@ class TransactionPayTabs(models.Model):
 
     @api.model
     def _paytabs_form_get_tx_from_data(self,  data):
-		# # reference = data['metadata']['reference']
         reference = data.get('reference_no')
         tx = self.env['payment.transaction'].sudo().search([('reference', '=', reference)])
+        if 'response_code' in data:
+            if int(data['response_code']) == 0:
+                tx.write({'state':'cancel'})
         if not tx or len(tx) > 1:
             error_msg = _('PayTabs: received data with missing reference (%s)') % (reference)
             if not tx.ids:
